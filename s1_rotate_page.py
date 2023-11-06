@@ -154,8 +154,10 @@ def rotate_img(file_path, index) -> bool:
     if bbox is None: return False
     if now_page == 'https://tjhsieh.github.io/c/ct/ct2023s/syllabus/index.html':
         now_page = str(index + 1)
-        print(f'\nGet information from QR code failed, replace to "{now_page}.png", file path: {file_path}')
-        print(f'Warning: It may contained page error, please check it manually')
+        #print(f'\nGet information from QR code failed, replace to "{now_page}.png", file path: {file_path}')
+        #print(f'Warning: It may contained page error, please check it manually')
+    elif now_page == '':
+        now_page = str(index + 1)
     
     # Calculate qrcode angle
     box = boxSize(bbox[0])
