@@ -1,14 +1,9 @@
-"""
-參考同學程式，旋轉稿紙角度
-
-by kyL
-"""
-
 import os
 import cv2
 import numpy as np
 from tqdm import tqdm
 import argparse
+from natsort import ns, natsorted
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Step 1 rotate scan page')
@@ -116,7 +111,7 @@ def saveImage(image, now_page):
         now_page -- 頁面 index
     """
     global result_path
-    print("now page is",now_page)
+    #print("now page is",now_page)
     cv2.imwrite('./{}/{}.png'.format(result_path, now_page), image)
     
 
@@ -197,9 +192,10 @@ if __name__ == '__main__':
     
     errorList = []
     allFileList = os.listdir(target_path)
+    allFileList = natsorted(allFileList, alg=ns.PATH)
     for index in tqdm(range(len(allFileList))):
         filePath = target_path + "/" + allFileList[index]
-        print(filePath)
+        #print(filePath)
         if not rotate_img(filePath, index):
             errorList.append(allFileList[index])
             

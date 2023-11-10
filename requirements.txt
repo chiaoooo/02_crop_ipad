@@ -3,3 +3,4 @@ tqdm
 lpips
 torch
 scikit-image
+natsort

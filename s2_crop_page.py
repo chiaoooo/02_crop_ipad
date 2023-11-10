@@ -5,7 +5,7 @@
 
 by kyL
 """
-import matplotlib.pyplot as plt
+
 import cv2
 import os, json
 import numpy as np
@@ -31,12 +31,12 @@ def parse_args():
 def read_json(file):
     with open(file) as f:
         p = json.load(f)
-        unicode = ['']*13759
-        for i in range(13759):
-            if (128 <= i & i < 256) or (0 <= i & i < 32): # 128 - 255: 'UNICODE' = '     '; 0 - 31: unable to print
-                unicode[i] = '123'
-            else:
-                unicode[i] = 'U+' + p['CP950'][i]['UNICODE'][2:6] # ex: 0x1234 --> U+1234
+        unicode = ['']*1679
+        for i in range(1679):
+            # if (128 <= i & i < 256) or (0 <= i & i < 32): # 128 - 255: 'UNICODE' = '     '; 0 - 31: unable to print
+            #     unicode[i] = '123'
+            # else:
+            unicode[i] = 'U+' + p['CP950'][i]['UNICODE'][2:6] # ex: 0x1234 --> U+1234
         return unicode
 
 def twoPointDistance(p1, p2):
@@ -149,22 +149,22 @@ def scaleAdjustment(word_img, adjustCentroid=True):
     # top_y = max(0, cY - block_size_half)
     # bot_y = min(h, cY + block_size_half)
 
+    crop_length = 300
     h, w, _ = word_img_copy.shape
-    left_x = max(0, cX - int(200/2))
-    right_x = min(w, cX + int(200/2))
-    top_y = max(0, cY - int(200/2))
-    bot_y = min(h, cY + int(200/2))
+    left_x = max(0, cX - int(crop_length/2)) 
+    right_x = min(w, cX + int(crop_length/2))
+    top_y = max(0, cY - int(crop_length/2))
+    bot_y = min(h, cY + int(crop_length/2))
 
     finalWordImg = word_img_copy[top_y:bot_y, left_x:right_x]
-    # sourceFile = open('demo.txt', 'w')
-    # print(max(word_w,word_h))
-    return cv2.resize(finalWordImg, (300, 300), interpolation=cv2.INTER_AREA)
-
+    
     ###### draw bounding box
     # print(word_w,word_h)
     # word_img_copy = cv2.rectangle(word_img_copy, (cX-1, cY-1), (cX+1, cY+1), (255, 0, 0), 2)
     # return cv2.rectangle(word_img_copy, (topLeftX, topLeftY), (topLeftX+word_w, topLeftY+word_h), (255, 0, 0), 2)
     ######
+
+    return cv2.resize(finalWordImg, (300, 300), interpolation=cv2.INTER_AREA)
 
 def setPointImageFromPath(args) -> str:
     """主程式，用於辨識並切割稿紙
@@ -252,7 +252,6 @@ def setPointImageFromPath(args) -> str:
 
     # 處理此頁面的每個字
     for j in range(10):
-        # max_length_array = []
         # calculate Y coordinate 
         y1 = int(result[0][1] + j * (block + mid))
         y2 = int(y1 + block)
@@ -290,8 +289,8 @@ def setPointImageFromPath(args) -> str:
                 word_img = word_img[word_result[0][1] + SCALE: word_result[1][1] - SCALE, word_result[0][0] + SCALE: word_result[1][0] - SCALE]
             else:
                 # 採用計算得到的座標(準度較差)
-                scale = SCALE + 20
-                word_img = image[y1 + scale:y2 - scale, x1 + scale:x2 - scale]
+                #scale = 15
+                word_img = image[y1 +10:y2 + 15, x1+30:x2-30]
             
             # 儲存圖片
             if index > 665 and index <= 13725:
@@ -299,22 +298,13 @@ def setPointImageFromPath(args) -> str:
                 finalWordImg = scaleAdjustment(word_img, adjustCentroid=adjustCentroid)
                 savePNG(finalWordImg,\
                         index, now_page, IM_DIR, unicode)
-                # max_length_array.append(max_length)
-                # print(max_length_array)
             else:
                 if word_img.shape[0] == 0 or word_img.shape[1] == 0:
                     return f'CropError: {now_page}, code_{str(unicode[index-1])}'
                 savePNG(cv2.resize(word_img, (300, 300), interpolation=cv2.INTER_AREA),\
                         index, now_page, IM_DIR, unicode)
                 
-              
         if show:
-            # plt.hist(max_length_array, bins=10, edgecolor='black')
-            # plt.title("Histogram")
-            # plt.xlabel("Page")
-            # plt.ylabel("length")
-            # plt.savefig('histogram.png')
-            # plt.show()
             key = cv2.waitKey(1)
             if key == 27:
                 cv2.destroyAllWindows()
@@ -383,8 +373,6 @@ def main(args):
     shows = [SHOW if not MULTIPROCESSING else False] * len(filePaths)
     scales = [SCALE] * len(filePaths)
     COLOR_BOOSTs = [COLOR_BOOST] * len(filePaths)
-    # max_length_arrays = [max_length_array]
-    # max_length_array = []
 
     # 監聽輸出資料夾，顯示進度條
     start_unicode = (PAGE_START - 1) * 100
@@ -420,7 +408,6 @@ if __name__ == '__main__':
     SHOW = False # 顯示切割過程
     SCALE = 20 # 電子檔設5，紙本設20
     COLOR_BOOST = True # 增加對比度，適用於紙本掃描, 但會影響速度
-    # max_length_array = []
 
     args = parse_args()
     student_id = args.id
