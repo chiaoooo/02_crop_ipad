@@ -31,8 +31,8 @@ def parse_args():
 def read_json(file):
     with open(file) as f:
         p = json.load(f)
-        unicode = ['']*1679
-        for i in range(1679):
+        unicode = ['']*13759
+        for i in range(13759):
             # if (128 <= i & i < 256) or (0 <= i & i < 32): # 128 - 255: 'UNICODE' = '     '; 0 - 31: unable to print
             #     unicode[i] = '123'
             # else:
@@ -149,7 +149,7 @@ def scaleAdjustment(word_img, adjustCentroid=True):
     # top_y = max(0, cY - block_size_half)
     # bot_y = min(h, cY + block_size_half)
 
-    crop_length = 300
+    crop_length = 240
     h, w, _ = word_img_copy.shape
     left_x = max(0, cX - int(crop_length/2)) 
     right_x = min(w, cX + int(crop_length/2))
@@ -290,7 +290,9 @@ def setPointImageFromPath(args) -> str:
             else:
                 # 採用計算得到的座標(準度較差)
                 #scale = 15
-                word_img = image[y1 +10:y2 + 15, x1+30:x2-30]
+                #word_img = image[y1 -15:y2+15, x1-15:x2+15]
+                scale = SCALE + 20
+                word_img = image[y1 + scale:y2 - scale, x1 + scale:x2 - scale]
             
             # 儲存圖片
             if index > 665 and index <= 13725:
@@ -403,9 +405,9 @@ def main(args):
 
 if __name__ == '__main__':
     PROCESS_END = False # 勿改
-    MULTIPROCESSING = True # 多進程，True不能顯示切割過程，無法中途停下
+    MULTIPROCESSING = False # 多進程，True不能顯示切割過程，無法中途停下
     ADJUST_CENTROID = True # 文字重心對齊
-    SHOW = False # 顯示切割過程
+    SHOW = True # 顯示切割過程
     SCALE = 20 # 電子檔設5，紙本設20
     COLOR_BOOST = True # 增加對比度，適用於紙本掃描, 但會影響速度
 
