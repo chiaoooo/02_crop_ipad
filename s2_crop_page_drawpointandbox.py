@@ -236,10 +236,10 @@ def setPointImageFromPath(args) -> str:
             index = 100 * (now_page - 1) + k + 10 * j + 1
             
             # 檢查 index
-            if index > len(unicode): 
-                break
-            if unicode[index - 1] == '123': # skip (ignore character)
-                continue
+            # if index > len(unicode): 
+            #     break
+            # if unicode[index - 1] == '123': # skip (ignore character)
+            #     continue
             
             # calculate X coordinate 
             x1 = int(result[0][0] + k * (block + bet))
@@ -276,36 +276,42 @@ def setPointImageFromPath(args) -> str:
             # else:
                 #採用計算得到的座標(準度較差)
             
-            scale = 15
-            word_img = image[y1 +15:y2+10, x1 + scale:x2 - scale]
+            # scale = 15
+            # word_img = image[y1 +15:y2+10, x1 + scale:x2 - scale]
+            scale = SCALE + 20
+            word_img = image[y1 + scale:y2 - scale, x1 + scale:x2 - scale]
             
-            # if show:      
-            #     cv2.rectangle(show_image, (x1+scale, y1+scale), (x2-scale, y2-scale), (68, 137, 0), 2)
-            #     cv2.imshow('Image',
-            #                    cv2.resize(show_image,
-            #                               (show_image.shape[1] // 8, show_image.shape[0] // 8),
-            #                               interpolation=cv2.INTER_AREA)
-            #                     )
+            if show:      
+                cv2.rectangle(show_image, (x1+scale, y1+scale), (x2-scale, y2-scale), (68, 137, 0), 2)
+                cv2.imshow('Image',
+                               cv2.resize(show_image,
+                                          (show_image.shape[1] // 8, show_image.shape[0] // 8),
+                                          interpolation=cv2.INTER_AREA)
+                                )
 
             binary_word_img = cv2.cvtColor(word_img, cv2.COLOR_BGR2GRAY)
             binary_word_img = cv2.threshold(binary_word_img, 127, 255, cv2.THRESH_BINARY_INV)[1]
             topLeftX, topLeftY, word_w, word_h = cv2.boundingRect(binary_word_img)
             max_length = max(word_w,word_h)
-            # 計算質心
+            
             cX, cY = topLeftX + word_w // 2, topLeftY + word_h // 2 #幾何中心
 
+            # 計算質心
             moments = cv2.moments(binary_word_img)
             if moments["m00"] != 0:
                 cX2 = int(moments["m10"] / moments["m00"])
                 cY2 = int(moments["m01"] / moments["m00"])
-
+            else:
+                cX2 = 0
+                cY2 = 0
+                
             if show:
-                save_path = 'D:/Rotate_Crop_Page_ori/bounding/'
+                save_path = f'./bounding/{IM_DIR}/'
                 file_extension = '.jpg'
             #畫點
-            #red point 質心
+            #red point 幾何中心
                 cv2.rectangle(show_image, (x1+scale+cX-2, y1+scale+cY-2), (x1+scale+cX+2, y1+scale+cY+2), (0, 0, 255), 5)
-            #green point 重心
+            #green point 質心
                 cv2.rectangle(show_image, (x1+scale+cX2-2, y1+scale+cY2-2), (x1+scale+cX2+2, y1+scale+cY2+2), (0, 255, 0), 5)
             #畫框框       
                 cv2.rectangle(show_image, (x1+scale+topLeftX, y1+scale+topLeftY), (x1+topLeftX+word_w+scale,  y1+scale+topLeftY+word_h), (68, 0, 137), 2)
@@ -389,6 +395,14 @@ def main(args):
     else:
         print(f"Folders '{im_dir}' exist. ")
     print(f"Processing page {PAGE_START}~{PAGE_END} files... ")
+
+    save_path = f'./bounding/{im_dir}/'
+    if not os.path.exists(save_path): # 創 png 這個資料夾
+        os.makedirs(save_path)
+        print(f"Created folders '{save_path}'. ")
+    else:
+        print(f"Folders '{save_path}' exist. ")
+        print(f"Processing page {PAGE_START}~{PAGE_END} files... ")
 
     # 生成全部參數
 
